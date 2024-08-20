@@ -6,17 +6,23 @@ defmodule P01 do
   """
   use ExUnit.Case # usamos el framework de pruebas caso por caso
 
-  ##################
-  # TU CODIGO AQUI #
-  ##################
+  @doc """
+  Calcula el cuádruple de un número dado
+  """
   def cuadruple(num) when is_number(num) do
     num * 4
   end
 
+  @doc """
+  Devuelve el sucesor un número
+  """
   def sucesor(num) when is_number(num) do
     num + 1
   end
 
+  @doc """
+  Encuentra el máximo entre dos números
+  """
   def maximo(num1, num2) when is_number(num1) and is_number(num2) do
     if num1 > num2 do
       num1
@@ -25,20 +31,89 @@ defmodule P01 do
     end
   end
 
+  @doc """
+  Suma dos números
+  """
   def suma(num1, num2) when is_number(num1) and is_number(num2) do
     num1 + num2
   end
 
+  @doc """
+  Resta el segundo número del primero
+  """
   def resta(a, b) when is_number(a) and is_number(b) do
     a - b
   end
 
+  @doc """
+  Multiplica la multiplicación de conjugados
+  """
   def multiplicacionConjugados(a, b) when is_number(a) and is_number(b) do
     a * a + b * b
   end
 
+  @doc """
+  Devuelve la negación de un valor booleano
+  """
   def negacion(bool) when is_boolean(bool) do
     not bool
+  end
+
+  @doc """
+  Realiza la conjunción lógica entre dos valores booleanos
+  """
+  def conjuncion(bool1, bool2) when is_boolean(bool1) and is_boolean(bool2) do
+    bool1 and bool2
+  end
+
+  @doc """
+  Realiza la disyunción lógica entre dos valores booleanos
+  """
+  def disyuncion(bool1, bool2) when is_boolean(bool1) and is_boolean(bool2) do
+    bool1 or bool2
+  end
+
+  @doc """
+  Calcula el valor obsoluto de un número
+  """
+  def absoluto(num) when is_number(num) do
+    if num < 0 do
+      -num
+    else
+      num
+    end
+  end
+
+  @doc """
+  Calcula el área de un círculo dado su radio
+  """
+  def areaCirculo(r) when is_number(r) do
+    3.14 * r * r
+  end
+
+  @doc """
+  Calcula la suma de Gauss de manera recursiva
+  """
+  def sumaGaussRec(n) when is_integer(n) and n >= 0 do
+    if n == 0 do
+      0
+    else
+      n + sumaGaussRec(n - 1)
+    end
+  end
+
+  @doc """
+  Calcula la suma de Gauss usando la fórmula cerrada
+  """
+  def sumaGauss(n) when is_integer(n) and n >= 0 do
+    n * (n + 1) / 2
+  end
+
+  @doc """
+  Calcula el área de un triangulo dados tres puntos del plano
+  """
+  def areaTriangulo(a, b, c) when is_tuple(a) and is_tuple(b) and is_tuple(c) do
+    abs((a[0] * (b[1] - c[1]) + b[0] * (c[1] - a[1]) + c[0] * (a[1] - b[1])) / 2)
   end
 
   # ---------------------------------------- Pruebas ----------------------------------------
