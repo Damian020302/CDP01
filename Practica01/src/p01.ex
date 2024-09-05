@@ -155,7 +155,7 @@ defmodule P01 do
 
   test "pruebaMultiplicacionConjugada" do
     IO.puts " -> Probando multipliacionConjugados(a, b)"
-    assert multiplicacionConjugados(5, 3) == 16         #Por si acaso, el resultado correcto es 34
+    assert multiplicacionConjugados(5, 3) == 16
     assert multiplicacionConjugados(7,6) == 13
     assert multiplicacionConjugados(4,4) == 0
   end
