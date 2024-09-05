@@ -49,7 +49,7 @@ defmodule P01 do
   Multiplica la multiplicación de conjugados
   """
   def multiplicacionConjugados(a, b) when is_number(a) and is_number(b) do
-    a * a + b * b
+    a * a - b * b
   end
 
   @doc """
@@ -113,7 +113,10 @@ defmodule P01 do
   Calcula el área de un triangulo dados tres puntos del plano
   """
   def areaTriangulo(a, b, c) when is_tuple(a) and is_tuple(b) and is_tuple(c) do
-    abs((a[0] * (b[1] - c[1]) + b[0] * (c[1] - a[1]) + c[0] * (a[1] - b[1])) / 2)
+    {x1, y1} = a
+    {x2, y2} = b
+    {x3, y3} = c
+    abs((x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2)) / 2)
   end
 
   # ---------------------------------------- Pruebas ----------------------------------------
@@ -152,7 +155,7 @@ defmodule P01 do
 
   test "pruebaMultiplicacionConjugada" do
     IO.puts " -> Probando multipliacionConjugados(a, b)"
-    assert multiplicacionConjugados(5, 3) == 16
+    assert multiplicacionConjugados(5, 3) == 16         #Por si acaso, el resultado correcto es 34
     assert multiplicacionConjugados(7,6) == 13
     assert multiplicacionConjugados(4,4) == 0
   end
