@@ -170,7 +170,7 @@ defmodule P01 do
   - m: Map del que se quiere borrar un elemento
   - k: La llave del elemento que se quiere borrar del map
   """
-  def mapBorra(m, k) when is_map(m) and is_number(k), do: Map.delete(m, k)
+  def mapBorra(m, k) when is_map(m), do: Map.delete(m, k)
 
   @doc """
   Dado un map, regresa su conversión a una lista.
