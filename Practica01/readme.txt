@@ -1,4 +1,4 @@
-Gonzáles Tamaris Santiago - 423051416
+González Tamariz Santiago - 423051416
 Vázquez Torrijos Damián - 318309877
 
 Para areaTriangulo(a,b,c), originalmente se había definido cómo:
