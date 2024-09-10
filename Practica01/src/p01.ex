@@ -8,116 +8,115 @@ defmodule P01 do
 
   @doc """
   Calcula el cuádruple de un número dado
+  ### Parameters
+  - num: el número al que se le va a calcular el cuádruple
   """
-  def cuadruple(num) when is_number(num) do
-    num * 4
-  end
+  def cuadruple(num) when is_number(num), do: num * 4
 
   @doc """
   Devuelve el sucesor un número
+  ### Parameters
+  - num: el número al que se le va a calcular el sucesor
   """
-  def sucesor(num) when is_number(num) do
-    num + 1
-  end
+  def sucesor(num) when is_number(num), do: num + 1
 
   @doc """
   Encuentra el máximo entre dos números
+  ### Parameters
+  - num1: primer número
+  - num2: segundo número
   """
-  def maximo(num1, num2) when is_number(num1) and is_number(num2) do
-    if num1 > num2 do
-      num1
-    else
-      num2
-    end
-  end
+  def maximo(num1, num2) when is_number(num1) and is_number(num2) and num1 > num2, do: num1
+  def maximo(num1, num2) when is_number(num1) and is_number(num2), do: num2
 
   @doc """
   Suma dos números
+  ### Parameters
+  - num1: primer número
+  - num2: segundo número
   """
-  def suma(num1, num2) when is_number(num1) and is_number(num2) do
-    num1 + num2
-  end
+  def suma(num1, num2) when is_number(num1) and is_number(num2), do: num1 + num2
 
   @doc """
   Resta el segundo número del primero
+  ### Parameters
+  - a: primer número
+  - b: segundo número
   """
-  def resta(a, b) when is_number(a) and is_number(b) do
-    a - b
-  end
+  def resta(a, b) when is_number(a) and is_number(b), do: a - b
 
   @doc """
   Multiplica la multiplicación de conjugados
+  ### Parameters
+  - a: primer número
+  - b: segundo número
   """
-  def multiplicacionConjugados(a, b) when is_number(a) and is_number(b) do
-    a * a - b * b
-  end
+  def multiplicacionConjugados(a, b) when is_number(a) and is_number(b), do: a * a - b * b
 
   @doc """
   Devuelve la negación de un valor booleano
+  ### Parameters
+  - bool: el valor booleano al que se le va a calcular la negación
   """
-  def negacion(bool) when is_boolean(bool) do
-    not bool
-  end
+  def negacion(bool) when is_boolean(bool), do: not bool
 
   @doc """
   Realiza la conjunción lógica entre dos valores booleanos
+  ### Parameters
+  - bool1: primer valor booleano
+  - bool2: segundo valor booleano
   """
-  def conjuncion(bool1, bool2) when is_boolean(bool1) and is_boolean(bool2) do
-    bool1 and bool2
-  end
+  def conjuncion(bool1, bool2) when is_boolean(bool1) and is_boolean(bool2), do: bool1 and bool2
 
   @doc """
   Realiza la disyunción lógica entre dos valores booleanos
+  ### Parameters
+  - bool1: primer valor booleano
+  - bool2: segundo valor booleano
   """
-  def disyuncion(bool1, bool2) when is_boolean(bool1) and is_boolean(bool2) do
-    bool1 or bool2
-  end
+  def disyuncion(bool1, bool2) when is_boolean(bool1) and is_boolean(bool2), do: bool1 or bool2
 
   @doc """
   Calcula el valor obsoluto de un número
+  ### Parameters
+  - num: el número al que se le va a calcular el valor absoluto
   """
-  def absoluto(num) when is_number(num) do
-    if num < 0 do
-      -num
-    else
-      num
-    end
-  end
+  def absoluto(num) when is_number(num) and num < 0, do: -num
+  def absoluto(num) when is_number(num), do: num
 
   @doc """
   Calcula el área de un círculo dado su radio
+  ### Parameters
+  - r: el radio del círculo
   """
-  def areaCirculo(r) when is_number(r) do
-    3.14 * r * r
-  end
+  def areaCirculo(r) when is_number(r), do: 3.14 * r * r
 
   @doc """
   Calcula la suma de Gauss de manera recursiva
+  ### Parameters
+  - n: el número hasta el cual se va a calcular la suma de Gauss
   """
-  def sumaGaussRec(n) when is_integer(n) and n >= 0 do
-    if n == 0 do
-      0
-    else
-      n + sumaGaussRec(n - 1)
-    end
-  end
+  def sumaGaussRec(n) when is_integer(n) and n >= 0 and n== 0, do: 0
+  def sumaGaussRec(n) when is_integer(n) and n >= 0, do: n + sumaGaussRec(n - 1)
 
   @doc """
   Calcula la suma de Gauss usando la fórmula cerrada
+  ### Parameters
+  - n: el número hasta el cual se va a calcular la suma de Gauss
   """
-  def sumaGauss(n) when is_integer(n) and n >= 0 do
-    n * (n + 1) / 2
-  end
+  def sumaGauss(n) when is_integer(n) and n >= 0, do: n * (n + 1) / 2
 
   @doc """
   Calcula el área de un triangulo dados tres puntos del plano
+  ### Parameters
+  - {x1, y1}: primer punto del plano
+  - {x2, y2}: segundo punto del plano
+  - {x3, y3}: tercer punto del plano
   """
-  def areaTriangulo(a, b, c) when is_tuple(a) and is_tuple(b) and is_tuple(c) do
-    {x1, y1} = a
-    {x2, y2} = b
-    {x3, y3} = c
-    abs((x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2)) / 2)
-  end
+  def areaTriangulo({x1, y1}, {x2, y2}, {x3, y3}) when
+    is_number(x1) and is_number(y1) and
+    is_number(x2) and is_number(y2) and
+    is_number(x3) and is_number(y3), do: abs((x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2)) / 2)
 
   @doc """
   Dado un número n y una cadena regresa una lista con n veces la cadena
@@ -189,7 +188,7 @@ defmodule P01 do
     is_number(x1) and
     is_number(x2) and
     is_number(y1) and
-    is_number(y2), 
+    is_number(y2),
     do: ((x2 - x1)**2 + (y2 - y1)**2)**0.5
 
   @doc """
