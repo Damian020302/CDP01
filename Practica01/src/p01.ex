@@ -46,13 +46,13 @@ defmodule P01 do
   Realiza la conjunción lógica entre dos valores booleanos
   """
   def conjuncion(true, true), do: true
-  def conjuncion(_, _), do: false
+  def conjuncion(a, b) when is_boolean(a) and is_boolean(b), do: false
 
   @doc """
   Realiza la disyunción lógica entre dos valores booleanos
   """
   def disyuncion(false, false), do: false
-  def disyuncion(_, _), do: true
+  def disyuncion(a, b) when is_boolean(a) and is_boolean(b), do: true
 
   @doc """
   Calcula el valor obsoluto de un número
@@ -69,18 +69,23 @@ defmodule P01 do
   """
   def sumaGaussRec(0), do: 0
   def sumaGaussRec(n) when is_number(n) and n >= 0, do: n + sumaGaussRec(n-1)
-  def sumaGaussRec(_), do: 0
 
   @doc """
   Calcula la suma de Gauss usando la fórmula cerrada
   """
   def sumaGauss(n) when is_number(n) and n >= 0, do: (n * (n+1)) / 2
-  def sumaGauss(_), do: 0
 
   @doc """
   Calcula el área de un triangulo dados tres puntos del plano
   """
-  def areaTriangulo({x1, y1}, {x2, y2}, {x3, y3}), do: absoluto((x1*(y2-y3) + x2*(y3-y1) + x3*(y1-y2)) / 2)
+  def areaTriangulo({x1, y1}, {x2, y2}, {x3, y3}) when
+    is_integer(x1) and
+    is_integer(x2) and
+    is_integer(x3) and
+    is_integer(y1) and
+    is_integer(y2) and
+    is_integer(y3),
+    do: absoluto((x1*(y2-y3) + x2*(y3-y1) + x3*(y1-y2)) / 2)
 
   @doc """
   Dado un número n y una cadena regresa una lista con n veces la cadena
@@ -88,8 +93,8 @@ defmodule P01 do
   - n: número de veces a repetir la cadena
   - s: la cadena a repetir
   """
-  def repiteCadena(0, _), do: []
-  def repiteCadena(n, s) when is_number(n), do: [ s | repiteCadena(n-1, s) ]
+  def repiteCadena(0, s) when is_binary(s), do: []
+  def repiteCadena(n, s) when is_number(n) and is_binary(s), do: [ s | repiteCadena(n-1, s) ]
 
   @doc """
   Dada una lista, un índice i y un valor, regresa la lista con el valor insertado en el indice i de la lista.
@@ -99,7 +104,7 @@ defmodule P01 do
   - e: el elemento que se va a insertar en el indice en la lista
   """
   def insertaElemento([], _, e), do: [e]
-  def insertaElemento(l, 0, e), do: [ e | l ]
+  def insertaElemento(l, 0, e) when is_list(l), do: [ e | l ]
   def insertaElemento([h | t], i, e) when is_number(i), do: [ h | insertaElemento(t, i-1, e) ]
 
   @doc """
@@ -133,7 +138,7 @@ defmodule P01 do
   - m: Map del que se quiere borrar un elemento
   - k: La llave del elemento que se quiere borrar del map
   """
-  def mapBorra(m, k) when is_map(m) and is_number(k), do: Map.delete(m, k)
+  def mapBorra(m, k) when is_map(m), do: Map.delete(m, k)
 
   @doc """
   Dado un map, regresa su conversión a una lista.
