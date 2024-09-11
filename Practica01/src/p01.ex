@@ -18,7 +18,7 @@ defmodule P01 do
   ### Parameters
   - num: el número al que se le va a calcular el sucesor
   """
-  def sucesor(num) when is_number(num), do: num + 1
+  def sucesor(num) when is_integer(num), do: num + 1
 
   @doc """
   Encuentra el máximo entre dos números
@@ -58,7 +58,8 @@ defmodule P01 do
   ### Parameters
   - bool: el valor booleano al que se le va a calcular la negación
   """
-  def negacion(bool) when is_boolean(bool), do: not bool
+  def negacion(true), do: false
+  def negacion(false), do: true
 
   @doc """
   Realiza la conjunción lógica entre dos valores booleanos
@@ -96,7 +97,7 @@ defmodule P01 do
   ### Parameters
   - n: el número hasta el cual se va a calcular la suma de Gauss
   """
-  def sumaGaussRec(n) when is_integer(n) and n >= 0 and n== 0, do: 0
+  def sumaGaussRec(0), do: 0
   def sumaGaussRec(n) when is_integer(n) and n >= 0, do: n + sumaGaussRec(n - 1)
 
   @doc """
@@ -116,7 +117,8 @@ defmodule P01 do
   def areaTriangulo({x1, y1}, {x2, y2}, {x3, y3}) when
     is_number(x1) and is_number(y1) and
     is_number(x2) and is_number(y2) and
-    is_number(x3) and is_number(y3), do: abs((x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2)) / 2)
+    is_number(x3) and is_number(y3),
+    do: absoluto((x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2)) / 2)
 
   @doc """
   Dado un número n y una cadena regresa una lista con n veces la cadena
@@ -124,8 +126,8 @@ defmodule P01 do
   - n: número de veces a repetir la cadena
   - s: la cadena a repetir
   """
-  def repiteCadena(0, _), do: []
-  def repiteCadena(n, s) when is_number(n), do: [ s | repiteCadena(n-1, s) ]
+  def repiteCadena(0, s) when is_binary(s), do: []
+  def repiteCadena(n, s) when is_integer(n) and is_binary(s), do: [ s | repiteCadena(n-1, s) ]
 
   @doc """
   Dada una lista, un índice i y un valor, regresa la lista con el valor insertado en el indice i de la lista.
@@ -135,8 +137,8 @@ defmodule P01 do
   - e: el elemento que se va a insertar en el indice en la lista
   """
   def insertaElemento([], _, e), do: [e]
-  def insertaElemento(l, 0, e), do: [ e | l ]
-  def insertaElemento([h | t], i, e) when is_number(i), do: [ h | insertaElemento(t, i-1, e) ]
+  def insertaElemento(l, 0, e) when is_list(l), do: [ e | l ]
+  def insertaElemento([h | t], i, e) when is_integer(i), do: [ h | insertaElemento(t, i-1, e) ]
 
   @doc """
   Dada una lista y un índice i, regresa la lista sin el elemento en la posición i.
@@ -146,7 +148,7 @@ defmodule P01 do
   """
   def eliminaIndex([], _), do: []
   def eliminaIndex([_ | t], 0), do: t
-  def eliminaIndex([h | t], i) when is_number(i), do: [ h | eliminaIndex(t, i-1) ]
+  def eliminaIndex([h | t], i) when is_integer(i), do: [ h | eliminaIndex(t, i-1) ]
 
   @doc """
   Regresa el  ́ultimo elemento de una lista.
