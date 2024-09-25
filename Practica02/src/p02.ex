@@ -7,23 +7,33 @@ defmodule Grafica do
   """
 
   @doc """
-  Inicia un nuevo procesadores y devuelve su PID.
+  Inicia un nuevo vertice (procesador) y devuelve su PID.
   ### Parameters
-  - edo_inicial: map(), estado inicial del procesador.
+  - estado: map(), estado inicial del procesador.
   """
-  def start_link(edo_inicial \\ %{visitado: false, raiz: false, id: -1, padres: []}) do
-    pid = spawn_link(fn -> recibe_mensaje(edo_inicial) end)
+  def inicializar_vertice(estado \\ 
+   %{
+      id: -1,
+      vecinos: [],
+      lider: nil
+    }
+  ) do
+    pid = spawn(Grafica, :recibe_mensaje, [estado])
     {:ok, pid}
   end
 
   @doc """
+  Esperar a recibir mensaje y procesarlo
   ### Parameters
-  - edo: map(), estado actual del procesador.
+  - estado: map(), estado actual del procesador.
   """
-  def recibe_mensaje(edo) do
+  def recibe_mensaje(estado) do
     receive do
-      mensaje -> {:ok, nuevo_edo} = procesa_mensaje(mensaje, edo)
-      recibe_mensaje(nuevo_edo)
+      mensaje -> 
+        {:ok, nuevo_estado} = procesa_mensaje(mensaje, estado)
+
+      # Recursión para seguir recibiendo mensajes
+      recibe_mensaje(nuevo_estado)
     end
   end
 
@@ -33,102 +43,129 @@ defmodule Grafica do
   - mensaje: tuple(), mensaje recibido por el procesador.
   - estado: map(), estado actual del procesador.
   """
-  def procesa_mensaje({:id, id}, estado) do
-    estado = Map.put(estado, :id, id)
+  # Setear alguna propiedad en el map
+  def procesa_mensaje({:set, {key, value}}, estado) do
+    estado = Map.put(estado, key, value)
     {:ok, estado}
   end
 
-  def procesa_mensaje({:vecinos, vecinos}, estado) do
-    estado = Map.put(estado, :vecinos, vecinos)
+  # Proclamarse lider y mandar propuesta
+  def procesa_mensaje({:proclamarse_lider}, estado) do
+    id = get(estado, :id)
+    IO.puts("Soy el procesador #{id} y me proclamo como lider")
+    # IO.puts("debug #{id}(#{inspect(self())}): vecinos: #{inspect(get(estado, :vecinos))}")
+    send(self(), {:propuesta_lider, id, self()})
+    broadcast(estado, {:propuesta_lider, id, self()}, self())
     {:ok, estado}
   end
 
-  def procesa_mensaje({:mensaje, n_id}, estado) do
-    estado = conexion(estado, n_id)
-    {:ok, estado}
-  end
-
-  def procesa_mensaje({:inicia}, estado) do
-    estado = Map.put(estado, :raiz, true)
-    estado = conexion(estado)
-    {:ok, estado}
-  end
-
-  def procesa_mensaje({:ya}, estado) do
-    %{:id => id, :visitado => visitado} = estado
-      if visitado do
-        IO.puts("Soy el procesador #{id} y ya he sido visitado")
-      else
-        IO.puts("Soy el procesador #{id} y no he sido visitado, grafica no conexa")
-      end
+  # Decidir si se toma una propuesta de lider y propagarla o se queda igual
+  def procesa_mensaje({:propuesta_lider, propuesta_lider, padre}, estado) when is_integer(propuesta_lider) do
+    id = get(estado, :id)
+    viejo_lider = get(estado, :lider)
+    # IO.puts("debug #{id}(#{inspect(self())}): vecinos: #{inspect(get(estado, :vecinos))}, padre: #{inspect(padre)}")
+    if viejo_lider == nil or propuesta_lider < viejo_lider do
+      IO.puts("Soy el procesador #{id} y mi nuevo lider es #{propuesta_lider}, mensaje recibido de #{inspect(padre)}")
+      estado = Map.put(estado, :lider, propuesta_lider)
+      broadcast(estado, {:propuesta_lider, propuesta_lider, self()}, padre)
       {:ok, estado}
+    else
+      {:ok, estado}
+    end
   end
 
+  # Debug para ver como quedan los líderes
+  def procesa_mensaje({:get_lider_debug}, estado) do
+    IO.puts("debug #{get(estado, :id)}(#{inspect(self())}): lider: #{get(estado, :lider)}")
+    {:ok, estado}
+  end
 
+  # Mensaje inválido
+  def procesa_mensaje(mensaje, estado) do
+    IO.puts("Mensaje (#{inspect(mensaje)}) inválido recibido en #{inspect(self())}")
+    {:ok, estado}
+  end
 
   @doc """
-  Establece la conexión entre el procesador y sus vecinos.
+  Obtener un valor del estado con su llave
   ### Parameters
-  - estado: map(), estado actual del procesador.
-  - n_id: integer(), ID del padre del procesador (opcional).
+  - estado: el estado del cual obtener el valor
+  - key: la llave del valor que queremos obtener
   """
-  def conexion(estado, n_id \\ nil) do
-    %{:id => id, :vecinos => vecinos, :visitado => visitado, :raiz => raiz, :padres => padres} = estado
-      if raiz and not visitado do
-        IO.puts("Procesador inicial #{id} conectado con #{inspect(vecinos)}")
-        Enum.map(vecinos, fn vecino -> send(vecino, {:mensaje, id}) end)
-        Map.put(estado, :visitado, true)
-      else
-        if n_id != nil and not (n_id in padres) do
-          IO.puts("Procesador #{id} con padre #{n_id}")
-          Enum.map(vecinos, fn vecino -> send(vecino, {:mensaje, id}) end)
-          Map.put(estado, :visitado, true)
-          Map.put(estado, :padres, [n_id | padres])
-        else
-          estado
-        end
-      end
-  end
+  def get(estado, key) when is_map(estado), do: Map.get(estado, key)
 
+  @doc """
+  Enviar mensaje a todos los vecinos menos al padre
+  ### Parameters
+  - estado: el estado del vértice actual
+  - mensaje: el mensaje a enviar
+  - padre: el padre del vértice actual
+  """
+  def broadcast(estado, mensaje, padre) when is_map(estado) do
+    vecinos = get(estado, :vecinos)
+    Enum.map(vecinos, fn vecino ->
+      if vecino != padre, do: send(vecino, mensaje)
+    end)
+  end
 
 end
 
-# Inicializa los nodos
-{:ok,q} = Grafica.start_link()
-{:ok,r} = Grafica.start_link()
-{:ok,s} = Grafica.start_link()
-{:ok,t} = Grafica.start_link()
-{:ok,u} = Grafica.start_link()
-{:ok,v} = Grafica.start_link()
-{:ok,w} = Grafica.start_link()
-{:ok,x} = Grafica.start_link()
-{:ok,y} = Grafica.start_link()
-{:ok,z} = Grafica.start_link()
+# Inicializa los vértices
+{:ok, q_pid} = Grafica.inicializar_vertice()
+{:ok, r_pid} = Grafica.inicializar_vertice()
+{:ok, s_pid} = Grafica.inicializar_vertice()
+{:ok, t_pid} = Grafica.inicializar_vertice()
+{:ok, u_pid} = Grafica.inicializar_vertice()
+{:ok, v_pid} = Grafica.inicializar_vertice()
+{:ok, w_pid} = Grafica.inicializar_vertice()
+{:ok, x_pid} = Grafica.inicializar_vertice()
+{:ok, y_pid} = Grafica.inicializar_vertice()
+{:ok, z_pid} = Grafica.inicializar_vertice()
 
-# Conecta los nodos
-send(q, {:vecinos, [s]})
-send(r, {:vecinos, [s]})
-send(s, {:vecinos, [r, q]})
-send(t, {:vecinos, [x, w]})
-send(u, {:vecinos, [y]})
-send(v, {:vecinos, [x]})
-send(w, {:vecinos, [t, x]})
-send(x, {:vecinos, [t, w, y, v]})
-send(y, {:vecinos, [u, z]})
-send(z, {:vecinos, [y]})
+# Establecer los vecinos de los vertices
+send(q_pid, {:set, {:vecinos, [s_pid]}})
+send(r_pid, {:set, {:vecinos, [s_pid]}})
+send(s_pid, {:set, {:vecinos, [r_pid, q_pid]}})
+send(t_pid, {:set, {:vecinos, [x_pid, w_pid]}})
+send(u_pid, {:set, {:vecinos, [y_pid]}})
+send(v_pid, {:set, {:vecinos, [x_pid]}})
+send(w_pid, {:set, {:vecinos, [t_pid, x_pid]}})
+send(x_pid, {:set, {:vecinos, [t_pid, w_pid, y_pid, v_pid]}})
+send(y_pid, {:set, {:vecinos, [u_pid, z_pid]}})
+send(z_pid, {:set, {:vecinos, [y_pid]}})
 
 # Envía mensajes a los nodos
-send(q, {:id, 17})
-send(r, {:id, 18})
-send(s, {:id, 19})
-send(t, {:id, 20})
-send(u, {:id, 21})
-send(v, {:id, 22})
-send(w, {:id, 23})
-send(x, {:id, 24})
-send(y, {:id, 25})
-send(z, {:id, 26})
+send(q_pid, {:set, {:id, 17}})
+send(r_pid, {:set, {:id, 18}})
+send(s_pid, {:set, {:id, 19}})
+send(t_pid, {:set, {:id, 20}})
+send(u_pid, {:set, {:id, 21}})
+send(v_pid, {:set, {:id, 22}})
+send(w_pid, {:set, {:id, 23}})
+send(x_pid, {:set, {:id, 24}})
+send(y_pid, {:set, {:id, 25}})
+send(z_pid, {:set, {:id, 26}})
 
-# Inicia el proceso de conexión
-send(x, {:inicia})
-send(s, {:inicia})
+# Prueba de mensaje inválido
+send(q_pid, {:test})
+
+# v se proclama como lider
+send(v_pid, {:proclamarse_lider})
+# Process.sleep(1000)
+# t se proclama como lider
+send(t_pid, {:proclamarse_lider})
+
+# Esperar a que acabe de decidir para poder ver los resultados
+Process.sleep(2000)
+
+# Ver los resultados
+send(q_pid, {:get_lider_debug})
+send(r_pid, {:get_lider_debug})
+send(s_pid, {:get_lider_debug})
+send(t_pid, {:get_lider_debug})
+send(u_pid, {:get_lider_debug})
+send(v_pid, {:get_lider_debug})
+send(w_pid, {:get_lider_debug})
+send(x_pid, {:get_lider_debug})
+send(y_pid, {:get_lider_debug})
+send(z_pid, {:get_lider_debug})
