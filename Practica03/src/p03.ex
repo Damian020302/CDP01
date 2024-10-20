@@ -11,7 +11,7 @@ defmodule Grafica do
   ### Parameters
   - estado: map(), estado inicial del procesador.
   """
-  def inicializar_vertice(estado \\ 
+  def inicializar_vertice(estado \\
    %{
       id: -1,
       vecinos: [],
@@ -29,7 +29,7 @@ defmodule Grafica do
   """
   def recibe_mensaje(estado) do
     receive do
-      mensaje -> 
+      mensaje ->
         {:ok, nuevo_estado} = procesa_mensaje(mensaje, estado)
 
       # Recursión para seguir recibiendo mensajes
