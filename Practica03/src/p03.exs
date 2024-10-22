@@ -146,6 +146,20 @@ defmodule Grafica do
     {:ok, estado}
   end
 
+  # Modificar id (deprecated (?))
+  def procesa_mensaje({:id, id}, estado) do
+    estado = Map.put(estado, :id, id)
+    IO.puts("WARNING: Usar {:set, {:id, id}}")
+    {:ok, estado}
+  end
+
+  # Modificar vecinos (deprecated (?))
+  def procesa_mensaje({:vecinos, vecinos}, estado) do
+    estado = Map.put(estado, :vecinos, vecinos)
+    IO.puts("WARNING: Usar {:set, {:vecinos, vecinos}}")
+    {:ok, estado}
+  end
+
   # Mensaje inválido
   def procesa_mensaje(mensaje, estado) do
     IO.puts("Mensaje (#{inspect(mensaje)}) inválido recibido en #{inspect(self())}")
@@ -202,71 +216,75 @@ defmodule Grafica do
 
 end
 
-# Inicializa los vértices
-{:ok, q_pid} = Grafica.inicializar_vertice()
-{:ok, r_pid} = Grafica.inicializar_vertice()
-{:ok, s_pid} = Grafica.inicializar_vertice()
-{:ok, t_pid} = Grafica.inicializar_vertice()
-{:ok, u_pid} = Grafica.inicializar_vertice()
-{:ok, v_pid} = Grafica.inicializar_vertice()
-{:ok, w_pid} = Grafica.inicializar_vertice()
-{:ok, x_pid} = Grafica.inicializar_vertice()
-{:ok, y_pid} = Grafica.inicializar_vertice()
-{:ok, z_pid} = Grafica.inicializar_vertice()
+defmodule Practica02 do
+  def prueba() do
+    # Inicializa los vértices
+    {:ok, q_pid} = Grafica.inicializar_vertice()
+    {:ok, r_pid} = Grafica.inicializar_vertice()
+    {:ok, s_pid} = Grafica.inicializar_vertice()
+    {:ok, t_pid} = Grafica.inicializar_vertice()
+    {:ok, u_pid} = Grafica.inicializar_vertice()
+    {:ok, v_pid} = Grafica.inicializar_vertice()
+    {:ok, w_pid} = Grafica.inicializar_vertice()
+    {:ok, x_pid} = Grafica.inicializar_vertice()
+    {:ok, y_pid} = Grafica.inicializar_vertice()
+    {:ok, z_pid} = Grafica.inicializar_vertice()
 
-# Establecer los vecinos de los vertices
-send(q_pid, {:set, {:vecinos, [s_pid]}})
-send(r_pid, {:set, {:vecinos, [s_pid]}})
-send(s_pid, {:set, {:vecinos, [r_pid, q_pid]}})
-send(t_pid, {:set, {:vecinos, [x_pid, w_pid]}})
-send(u_pid, {:set, {:vecinos, [y_pid]}})
-send(v_pid, {:set, {:vecinos, [x_pid]}})
-send(w_pid, {:set, {:vecinos, [t_pid, x_pid]}})
-send(x_pid, {:set, {:vecinos, [t_pid, w_pid, y_pid, v_pid]}})
-send(y_pid, {:set, {:vecinos, [u_pid, z_pid]}})
-send(z_pid, {:set, {:vecinos, [y_pid]}})
+    # Establecer los vecinos de los vertices
+    send(q_pid, {:set, {:vecinos, [s_pid]}})
+    send(r_pid, {:set, {:vecinos, [s_pid]}})
+    send(s_pid, {:set, {:vecinos, [r_pid, q_pid]}})
+    send(t_pid, {:set, {:vecinos, [x_pid, w_pid]}})
+    send(u_pid, {:set, {:vecinos, [y_pid]}})
+    send(v_pid, {:set, {:vecinos, [x_pid]}})
+    send(w_pid, {:set, {:vecinos, [t_pid, x_pid]}})
+    send(x_pid, {:set, {:vecinos, [t_pid, w_pid, y_pid, v_pid]}})
+    send(y_pid, {:set, {:vecinos, [u_pid, z_pid]}})
+    send(z_pid, {:set, {:vecinos, [y_pid]}})
 
-# Envía mensajes a los nodos
-send(q_pid, {:set, {:id, 17}})
-send(r_pid, {:set, {:id, 18}})
-send(s_pid, {:set, {:id, 19}})
-send(t_pid, {:set, {:id, 20}})
-send(u_pid, {:set, {:id, 21}})
-send(v_pid, {:set, {:id, 22}})
-send(w_pid, {:set, {:id, 23}})
-send(x_pid, {:set, {:id, 24}})
-send(y_pid, {:set, {:id, 25}})
-send(z_pid, {:set, {:id, 26}})
+    # Envía mensajes a los nodos
+    send(q_pid, {:set, {:id, 17}})
+    send(r_pid, {:set, {:id, 18}})
+    send(s_pid, {:set, {:id, 19}})
+    send(t_pid, {:set, {:id, 20}})
+    send(u_pid, {:set, {:id, 21}})
+    send(v_pid, {:set, {:id, 22}})
+    send(w_pid, {:set, {:id, 23}})
+    send(x_pid, {:set, {:id, 24}})
+    send(y_pid, {:set, {:id, 25}})
+    send(z_pid, {:set, {:id, 26}})
 
-# Prueba de mensaje inválido
-send(q_pid, {:test})
+    # Prueba de mensaje inválido
+    send(q_pid, {:test})
 
-# v se proclama como lider
-send(v_pid, {:proclamarse_lider})
-# Process.sleep(1000)
-# t se proclama como lider
-send(t_pid, {:proclamarse_lider})
+    # v se proclama como lider
+    send(v_pid, {:proclamarse_lider})
+    # Process.sleep(1000)
+    # t se proclama como lider
+    send(t_pid, {:proclamarse_lider})
 
-# Esperar a que acabe de decidir para poder ver los resultados
-Process.sleep(2000)
+    # Esperar a que acabe de decidir para poder ver los resultados
+    Process.sleep(2000)
 
-# Ver los resultados
-send(q_pid, {:get_lider_debug})
-send(r_pid, {:get_lider_debug})
-send(s_pid, {:get_lider_debug})
-send(t_pid, {:get_lider_debug})
-send(u_pid, {:get_lider_debug})
-send(v_pid, {:get_lider_debug})
-send(w_pid, {:get_lider_debug})
-send(x_pid, {:get_lider_debug})
-send(y_pid, {:get_lider_debug})
-send(z_pid, {:get_lider_debug})
+    # Ver los resultados
+    send(q_pid, {:get_lider_debug})
+    send(r_pid, {:get_lider_debug})
+    send(s_pid, {:get_lider_debug})
+    send(t_pid, {:get_lider_debug})
+    send(u_pid, {:get_lider_debug})
+    send(v_pid, {:get_lider_debug})
+    send(w_pid, {:get_lider_debug})
+    send(x_pid, {:get_lider_debug})
+    send(y_pid, {:get_lider_debug})
+    send(z_pid, {:get_lider_debug})
 
-Process.sleep(2000)
-IO.puts("-------------------")
-
+    Process.sleep(2000)
+    IO.puts("-------------------")
+  end
+end
 
 defmodule Practica03 do
+  require Grafica
   @doc """
   Spawnea n procesos de una función de un módulo particular y los almacene en una lista
   ### Parameters
@@ -307,15 +325,17 @@ defmodule Practica03 do
     send(h, msg)
     send_msg(l, msg)
   end
+
+  def prueba1() do
+    Practica03.spawn_in_list(4, Grafica, :inicializar_vertice, [])
+    listatest = Practica03.genera(4)
+    IO.puts("#{inspect(Process.alive?(hd(listatest)))}")
+    Enum.each(0..3, fn i -> send(Enum.at(listatest, i), {:set, {:id, i}}) end)
+    IO.puts("#{inspect(Process.alive?(hd(listatest)))}")
+    Practica03.send_msg(listatest, {:get_id_debug})
+    IO.puts("#{inspect(Process.alive?(hd(listatest)))}")
+    send(hd(listatest), {:test})
+  end
 end
 
-Practica03.spawn_in_list(4, Grafica, :inicializar_vertice, [])
-listatest = Practica03.genera(4)
-IO.puts("#{inspect(Process.alive?(hd(listatest)))}")
-Enum.each(0..3, fn i -> send(Enum.at(listatest, i), {:set, {:id, i}}) end)
-IO.puts("#{inspect(Process.alive?(hd(listatest)))}")
-Practica03.send_msg(listatest, {:get_id_debug})
-IO.puts("#{inspect(Process.alive?(hd(listatest)))}")
-send(hd(listatest), {:test})
-
-Process.sleep(2000)
+# Practica03.prueba1()
