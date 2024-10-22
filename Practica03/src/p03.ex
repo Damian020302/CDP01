@@ -80,10 +80,102 @@ defmodule Grafica do
     {:ok, estado}
   end
 
+  # Debug para ver el id
+  def procesa_mensaje({:get_id_debug}, estado) do
+    IO.puts("debug #{get(estado, :id)} (#{inspect(self())}): id: #{get(estado, :id)}")
+    {:ok, estado}
+  end
+
+  # Propone un valor para el consenso
+  def procesa_mensaje({:proponer, valor}, estado) do
+    id = get(estado, :id)
+    IO.puts("Soy el procesador #{id} y propongo el valor #{valor}")
+    pref = Map.put(%{}, id, valor)
+    estado = Map.put(estado, :pref, pref)
+    estado = Map.put(estado, :round, 1)
+    broadcast(estado, {:proponer, valor, id}, self())
+    {:ok, estado}
+  end
+
+  # Propone un valor para el consenso y especifica el proceso que lo propone
+  def procesa_mensaje({:proponer, valor, pid}, estado) do
+    #id = get(estado, :id)
+    pref = get(estado, :pref)
+    pref = Map.put(pref, pid, valor)
+    estado = Map.put(estado, :pref, pref)
+    {:ok, estado}
+  end
+
+  # Consensúa un valor y especifica el proceso que lo consensúa
+  def procesa_mensaje({:consensuar, valor, pid}, estado) do
+    id = get(estado, :id)
+    pref = get(estado, :pref)
+    pref = Map.put(pref, pid, valor)
+    estado = Map.put(estado, :pref, pref)
+    round = get(estado, :round)
+    if round == 1 do
+      maj = majority(pref)
+      mult = multiplicity(pref, maj)
+      if mult > length(pref) / 2 + 1 do
+        estado = Map.put(estado, :pref, %{id => maj})
+        estado = Map.put(estado, :round, 2)
+        broadcast(estado, {:consensuar, maj, id}, self())
+      else
+        estado = Map.put(estado, :pref, %{id => valor})
+        estado = Map.put(estado, :round, 2)
+        broadcast(estado, {:consensuar, valor, id}, self())
+      end
+    else
+      if id == round - 1 do
+        estado = Map.put(estado, :pref, %{id => valor})
+        estado = Map.put(estado, :round, round + 1)
+        broadcast(estado, {:consensuar, valor, id}, self())
+      else
+        #estado = Map.put(estado, :pref, %{id => valor})
+      end
+    end
+    {:ok, estado}
+  end
+
+  # Comprueba el estado actual del sistema
+  def procesa_mensaje({:comprobar}, estado) do
+    id = get(estado, :id)
+    pref = get(estado, :pref)
+    valor = Map.get(pref, id)
+    IO.puts("Soy el procesador #{id} y mi valor es #{valor}")
+    {:ok, estado}
+  end
+
   # Mensaje inválido
   def procesa_mensaje(mensaje, estado) do
     IO.puts("Mensaje (#{inspect(mensaje)}) inválido recibido en #{inspect(self())}")
     {:ok, estado}
+  end
+  
+  @doc """
+  Calcula el valor mayoritario en una lista de valores.
+  ### Parameters
+  - pref: La lista de valores.
+  """
+
+  def majority(pref) do
+    Enum.reduce(pref, nil, fn {_, valor}, acc ->
+      if acc == nil || Enum.count(pref, fn {_, v} -> v == valor end) > Enum.count(pref, fn {_, v} -> v == acc end) do
+        valor
+      else
+        acc
+      end
+    end)
+  end
+
+  @doc """
+  Calcula la multiplicidad de un valor en una lista de valores.
+  ### Parameters
+  - pref: La lista de valores.
+  - valor: El valor a calcular la multiplicidad.
+  """
+  def multiplicity(pref, valor) do
+    Enum.count(pref, fn {_, v} -> v == valor end)
   end
 
   @doc """
@@ -170,18 +262,46 @@ send(x_pid, {:get_lider_debug})
 send(y_pid, {:get_lider_debug})
 send(z_pid, {:get_lider_debug})
 
+Process.sleep(2000)
+IO.puts("-------------------")
+
 
 defmodule Practica03 do
+  @doc """
+  Spawnea n procesos de una función de un módulo particular y los almacene en una lista
+  ### Parameters
+  - n: integer(), número de procesos a spawnear
+  - module: atom(), módulo donde se encuentra la función a spawnear
+  - func: atom(), función a spawnear
+  - args: list(), argumentos de la función a spawnear
+  """
   def spawn_in_list(0, module, func, args) when is_atom(module) and is_atom(func) and is_list(args), do: []
   def spawn_in_list(n, module, func, args) when is_integer(n) and is_atom(module) and is_atom(func) and is_list(args) do
     pid = spawn(module, func, args)
     [pid | spawn_in_list(n-1, module, func, args)]
   end
 
+  @doc """
+  Spawnea n procesos del módulo Grafica
+  ### Parameters
+  - n: integer(), número de procesos a spawnear del módulo Grafica
+  """
   def genera(n) when is_integer(n) do
-    spawn_in_list(n, Grafica, :inicializar_vertice, [])
+    spawn_in_list(n, Grafica, :recibe_mensaje, [
+      %{
+        id: -1,
+        vecinos: [],
+        lider: nil
+      }
+    ])
   end
 
+  @doc """
+  Manda un mensaje particular a todos los procesos de una lista. (La lista es una lista de PIDs).
+  ### Parameters
+  - l: list(), lista de PIDs a los que se les mandará el mensaje
+  - msg: tuple(), mensaje a mandar
+  """
   def send_msg([h], msg) when is_tuple(msg), do: send(h, msg)
   def send_msg([h | l], msg) when is_list(l) and is_tuple(msg) do
     send(h, msg)
@@ -191,5 +311,11 @@ end
 
 Practica03.spawn_in_list(4, Grafica, :inicializar_vertice, [])
 listatest = Practica03.genera(4)
-Practica03.send_msg(listatest, {:test})
+IO.puts("#{inspect(Process.alive?(hd(listatest)))}")
+Enum.each(0..3, fn i -> send(Enum.at(listatest, i), {:set, {:id, i}}) end)
+IO.puts("#{inspect(Process.alive?(hd(listatest)))}")
+Practica03.send_msg(listatest, {:get_id_debug})
+IO.puts("#{inspect(Process.alive?(hd(listatest)))}")
 send(hd(listatest), {:test})
+
+Process.sleep(2000)
