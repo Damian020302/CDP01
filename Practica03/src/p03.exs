@@ -90,17 +90,21 @@ defmodule Grafica do
   def procesa_mensaje({:proponer, valor}, estado) do
     id = get(estado, :id)
     IO.puts("Soy el procesador #{id} y propongo el valor #{valor}")
-    pref = Map.put(%{}, id, valor)
+    #pref = Map.put(%{}, id, valor)
+    #estado = Map.put(estado, :pref, pref)
+    #estado = Map.put(estado, :round, 1)
+    pref = Map.get(estado, :pref, %{})
+    pref = Map.put(pref, id, valor)
     estado = Map.put(estado, :pref, pref)
     estado = Map.put(estado, :round, 1)
     broadcast(estado, {:proponer, valor, id}, self())
+    Process.sleep(100)
     {:ok, estado}
   end
 
   # Propone un valor para el consenso y especifica el proceso que lo propone
   def procesa_mensaje({:proponer, valor, pid}, estado) do
-    #id = get(estado, :id)
-    pref = get(estado, :pref)
+    pref = Map.get(estado, :pref, %{})
     pref = Map.put(pref, pid, valor)
     estado = Map.put(estado, :pref, pref)
     {:ok, estado}
@@ -109,10 +113,10 @@ defmodule Grafica do
   # Consensúa un valor y especifica el proceso que lo consensúa
   def procesa_mensaje({:consensuar, valor, pid}, estado) do
     id = get(estado, :id)
-    pref = get(estado, :pref)
+    pref = Map.get(estado, :pref, %{})
     pref = Map.put(pref, pid, valor)
     estado = Map.put(estado, :pref, pref)
-    round = get(estado, :round)
+    round = Map.get(estado, :round, 1)
     if round == 1 do
       maj = majority(pref)
       mult = multiplicity(pref, maj)
@@ -131,7 +135,7 @@ defmodule Grafica do
         estado = Map.put(estado, :round, round + 1)
         broadcast(estado, {:consensuar, valor, id}, self())
       else
-        #estado = Map.put(estado, :pref, %{id => valor})
+        {:ok, estado}
       end
     end
     {:ok, estado}
@@ -140,7 +144,7 @@ defmodule Grafica do
   # Comprueba el estado actual del sistema
   def procesa_mensaje({:comprobar}, estado) do
     id = get(estado, :id)
-    pref = get(estado, :pref)
+    pref = Map.get(estado, :pref)
     valor = Map.get(pref, id)
     IO.puts("Soy el procesador #{id} y mi valor es #{valor}")
     {:ok, estado}
@@ -165,7 +169,7 @@ defmodule Grafica do
     IO.puts("Mensaje (#{inspect(mensaje)}) inválido recibido en #{inspect(self())}")
     {:ok, estado}
   end
-  
+
   @doc """
   Calcula el valor mayoritario en una lista de valores.
   ### Parameters
@@ -213,7 +217,6 @@ defmodule Grafica do
       if vecino != padre, do: send(vecino, mensaje)
     end)
   end
-
 end
 
 defmodule Practica02 do
