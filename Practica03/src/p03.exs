@@ -90,20 +90,19 @@ defmodule Grafica do
   def procesa_mensaje({:proponer, valor}, estado) do
     id = get(estado, :id)
     IO.puts("Soy el procesador #{id} y propongo el valor #{valor}")
-    #pref = Map.put(%{}, id, valor)
-    #estado = Map.put(estado, :pref, pref)
-    #estado = Map.put(estado, :round, 1)
     pref = Map.get(estado, :pref, %{})
     pref = Map.put(pref, id, valor)
     estado = Map.put(estado, :pref, pref)
     estado = Map.put(estado, :round, 1)
     broadcast(estado, {:proponer, valor, id}, self())
-    Process.sleep(100)
+    Process.sleep(500)
+    send(self(), {:consensuar, valor, id})
     {:ok, estado}
   end
 
   # Propone un valor para el consenso y especifica el proceso que lo propone
   def procesa_mensaje({:proponer, valor, pid}, estado) do
+    IO.puts("Proponiendo valor #{valor}")
     pref = Map.get(estado, :pref, %{})
     pref = Map.put(pref, pid, valor)
     estado = Map.put(estado, :pref, pref)
@@ -120,7 +119,7 @@ defmodule Grafica do
     if round == 1 do
       maj = majority(pref)
       mult = multiplicity(pref, maj)
-      if mult > length(pref) / 2 + 1 do
+      if mult > (map_size(pref) / 2) + 1 do
         estado = Map.put(estado, :pref, %{id => maj})
         estado = Map.put(estado, :round, 2)
         broadcast(estado, {:consensuar, maj, id}, self())
@@ -135,7 +134,14 @@ defmodule Grafica do
         estado = Map.put(estado, :round, round + 1)
         broadcast(estado, {:consensuar, valor, id}, self())
       else
-        {:ok, estado}
+        if round == map_size(pref) do
+          pref = Map.get(estado, :pref)
+          valor_consensuado = majority(pref)
+          IO.puts("Soy el procesador #{id} y mi valor consensuado es #{valor_consensuado}")
+          {:ok, estado}
+        else
+          {:ok, estado}
+        end
       end
     end
     {:ok, estado}
@@ -145,8 +151,8 @@ defmodule Grafica do
   def procesa_mensaje({:comprobar}, estado) do
     id = get(estado, :id)
     pref = Map.get(estado, :pref)
-    valor = Map.get(pref, id)
-    IO.puts("Soy el procesador #{id} y mi valor es #{valor}")
+    valor_consensuado = majority(pref)
+    IO.puts("Soy el procesador #{id} y mi valor consensuado es #{valor_consensuado}")
     {:ok, estado}
   end
 
