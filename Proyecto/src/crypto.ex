@@ -15,8 +15,6 @@ defmodule Crypto do
       %{block | hash: hash(block)}
   end
 
-
-  @doc "Convierte un mapa a binario"
   defp encode_to_binary(map) do
       map
       |> Enum.map(fn {_, value} -> "#{value}" end) # Convierte cada valor en string
@@ -24,7 +22,6 @@ defmodule Crypto do
       |> :erlang.binary_to_list()                  # Convierte el string a binario
   end
 
-  @doc "Calcula el hash de un binario"
   defp simple_hash(binary) do
       :erlang.phash2(binary) |> Integer.to_string(16)
   end

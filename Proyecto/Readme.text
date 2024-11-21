@@ -1,0 +1,17 @@
+González Tamariz Santiago - 423051416
+Vázquez Torrijos Damián - 318309877
+
+Desde la terminal, en el directorio src de Proyecto ejecutar: iex
+
+Una vez iniciado el entorno de Erlang, ejecutar las siguientes lineas:
+c("crypto.ex")
+c("block.ex")
+c("blockchain.ex")
+c("main.ex")
+
+Una vez compilados, hay que ejecutar la siguiente linea:
+blockchainA = Main.run(10, 3)
+
+Para agregar un nuevo bloque hay que ejecutar las siguientes lineas:
+[blockchain | _] = blockchainA
+Blockchain.insert(blockchain, "Transacción: X -> Y 20 monedas")
