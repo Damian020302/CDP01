@@ -49,9 +49,7 @@ defmodule Main do
 
   # Propagar la blockchain inicial entre los nodos
   defp propagate_blockchain(network, blockchain) do
-    Enum.each(network, fn {pid, _} ->
-      send(pid, {:update_blockchain, blockchain})
-    end)
+    broadcast_to_all(network, {:update_blockchain, blockchain})
   end
 
   # Implementar el algoritmo Phase King
@@ -59,20 +57,16 @@ defmodule Main do
     rounds = 2 * f + 1
 
     Enum.each(1..rounds, fn round ->
-      # Enviar mensaje inicial a todos los nodos
-      Enum.each(network, fn {pid, _} ->
-        send(pid, {:start_round, round, self()})
+      # Difundir inicio de ronda
+      broadcast_to_all(network, {:start_round, round})
+
+      # Procesar mensajes
+      Enum.each(network, fn {pid, neighbors} ->
+        broadcast_to_neighbors(neighbors, {:message, %{id: pid, round: round}})
       end)
 
-      # Procesar mensajes recibidos
-      Enum.each(network, fn {pid, _} ->
-        send(pid, {:process_messages, round, network})
-      end)
-
-      # Finalizar la ronda
-      Enum.each(network, fn {pid, _} ->
-        send(pid, {:end_round, round})
-      end)
+      # Finalizar ronda
+      broadcast_to_all(network, {:end_round, round})
     end)
   end
 
@@ -92,19 +86,13 @@ defmodule Main do
         new_state = %{state | blockchain: new_blockchain}
         node_loop(new_state)
 
-      {:start_round, round, sender} ->
-        IO.puts("Nodo #{id} iniciando ronda #{round}. Enviando...")
-        send(sender, {:broadcast, %{id: id, round: round, value: :ok}})
+      {:start_round, round} ->
+        IO.puts("Nodo #{id} iniciando ronda #{round}")
         node_loop(state)
 
-      {:process_messages, round, network} ->
-        # Simula recibir mensajes de la red
-        IO.puts("Nodo #{id} procesando mensajes de la ronda #{round}")
-        Enum.each(network, fn {_, neighbors} ->
-          Enum.each(neighbors, fn neighbor_pid ->
-            send(neighbor_pid, {:message, %{id: id, round: round}})
-          end)
-        end)
+      {:message, %{id: sender_pid, round: round}} ->
+        # Usar inspect para convertir el PID a cadena legible
+        IO.puts("Nodo #{id} recibió un mensaje de #{inspect(sender_pid)} en la ronda #{round}")
         node_loop(state)
 
       {:end_round, round} ->
@@ -116,5 +104,19 @@ defmodule Main do
         IO.puts("Nodo #{id} enviando su blockchain")
         node_loop(state)
     end
+  end
+
+  # Difusión a todos los nodos
+  defp broadcast_to_all(network, message) do
+    Enum.each(network, fn {pid, _} ->
+      send(pid, message)
+    end)
+  end
+
+  # Difusión a vecinos específicos
+  defp broadcast_to_neighbors(neighbors, message) do
+    Enum.each(neighbors, fn neighbor_pid ->
+      send(neighbor_pid, message)
+    end)
   end
 end
